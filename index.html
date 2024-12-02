@@ -1,0 +1,120 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat With Me</title>
+</head>
+<body>
+    <h1>App chat</h1>
+    <ul id="message"></ul>
+    <form id="chat-form">
+        <input type="text" id="chat-mess">
+        <button id="send-chat">Send</button>
+    </form>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    // Kiểm tra và yêu cầu tên người dùng
+    let name = prompt('What is your name?');
+    while (!name || name.trim() === '') {  // Nếu không nhập tên hoặc nhấn Cancel
+        name = prompt('Please enter your name:');
+    }
+
+    const chatForm = document.querySelector('#chat-form');
+    const chatMes = document.querySelector('#chat-mess');
+    const messages = document.querySelector('#message');
+    
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const message = chatMes.value;
+        if (message.trim() !== '') {  // Kiểm tra nếu message không rỗng
+            socket.emit('on-chat', { 
+                name,
+                message: message 
+            });
+            chatMes.value = '';  // Xóa input sau khi gửi
+        }
+    });
+
+    // Lắng nghe sự kiện 'user-chat' từ server và hiển thị tin nhắn
+    socket.on('user-chat', (message) => {
+        const chatItem = document.createElement('li');
+        chatItem.textContent = `${message.name}: ${message.message}`;  // Hiển thị tên và tin nhắn
+        messages.appendChild(chatItem);  // Thêm tin nhắn vào danh sách
+    });
+</script>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat With Me</title>
+</head>
+<body>
+    <h1>App chat</h1>
+    <ul id="message"></ul>
+    <form id="chat-form">
+        <input type="text" id="chat-mess">
+        <button id="send-chat">Send</button>
+    </form>
+</body>
+<script>
+    // Mở kết nối WebSocket
+    const socket = new WebSocket('ws://localhost:3001');  // Đảm bảo dùng ws:// hoặc wss:// cho kết nối bảo mật
+
+    // Kiểm tra và yêu cầu tên người dùng
+    let name = prompt('What is your name?');
+    while (!name || name.trim() === '') {  // Nếu không nhập tên hoặc nhấn Cancel
+        name = prompt('Please enter your name:');
+    }
+
+    const chatForm = document.querySelector('#chat-form');
+    const chatMes = document.querySelector('#chat-mess');
+    const messages = document.querySelector('#message');
+    
+    // Lắng nghe sự kiện gửi message
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const message = chatMes.value;
+        if (message.trim() !== '') {  // Kiểm tra nếu message không rỗng
+            // Gửi message qua WebSocket
+            socket.send(JSON.stringify({ 
+                name,
+                message: message 
+            }));
+            chatMes.value = '';  // Xóa input sau khi gửi
+        }
+    });
+
+    // Lắng nghe sự kiện 'message' từ server và hiển thị tin nhắn
+    socket.addEventListener('message', (event) => {
+        const message = JSON.parse(event.data);
+        const chatItem = document.createElement('li');
+        chatItem.textContent = `${message.name}: ${message.message}`;  // Hiển thị tên và tin nhắn
+        messages.appendChild(chatItem);  // Thêm tin nhắn vào danh sách
+    });
+
+    // Lắng nghe sự kiện mở kết nối
+    socket.addEventListener('open', () => {
+        console.log("Connected to server");
+    });
+
+    // Lắng nghe sự kiện đóng kết nối
+    socket.addEventListener('close', () => {
+        console.log("Disconnected from server");
+    });
+
+    // Lắng nghe sự kiện lỗi
+    socket.addEventListener('error', (error) => {
+        console.log("WebSocket error: ", error);
+    });
+</script>
+</html>
